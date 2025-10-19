@@ -1,0 +1,6 @@
+Invoking command in '/home/tree/go2_ws/src/go2_description/build/go2_description': /usr/bin/cmake /home/tree/go2_ws/src/go2_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/tree/go2_ws/src/go2_description/install/go2_description
+Invoked command in '/home/tree/go2_ws/src/go2_description/build/go2_description' returned '0': /usr/bin/cmake /home/tree/go2_ws/src/go2_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/tree/go2_ws/src/go2_description/install/go2_description
+Invoking command in '/home/tree/go2_ws/src/go2_description/build/go2_description': /usr/bin/cmake --build /home/tree/go2_ws/src/go2_description/build/go2_description -- -j16 -l16
+Invoked command in '/home/tree/go2_ws/src/go2_description/build/go2_description' returned '0': /usr/bin/cmake --build /home/tree/go2_ws/src/go2_description/build/go2_description -- -j16 -l16
+Invoking command in '/home/tree/go2_ws/src/go2_description/build/go2_description': /usr/bin/cmake --install /home/tree/go2_ws/src/go2_description/build/go2_description
+Invoked command in '/home/tree/go2_ws/src/go2_description/build/go2_description' returned '0': /usr/bin/cmake --install /home/tree/go2_ws/src/go2_description/build/go2_description

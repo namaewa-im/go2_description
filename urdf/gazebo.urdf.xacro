@@ -83,23 +83,23 @@
     </gazebo>
 
     <!-- RL leg -->
-    <gazebo reference="LR_hip">
+    <gazebo reference="RL_hip">
         <mu1>0.2</mu1>
         <mu2>0.2</mu2>
     </gazebo>
-    <gazebo reference="LR_upper_leg_link">
+    <gazebo reference="RL_upper_leg_link">
         <mu1>0.2</mu1>
         <mu2>0.2</mu2>
         <self_collide>1</self_collide>
         <kp>10000.0</kp>
         <kd>1.0</kd>
     </gazebo>
-    <gazebo reference="LR_lower_leg_link">
+    <gazebo reference="RL_lower_leg_link">
         <mu1>0.2</mu1>
         <mu2>0.2</mu2>
         <self_collide>1</self_collide>
     </gazebo>
-    <gazebo reference="LR_foot_link">
+    <gazebo reference="RL_foot_link">
         <mu1>0.6</mu1>
         <mu2>0.6</mu2>
         <self_collide>1</self_collide>

@@ -1,54 +1,99 @@
 ## go2_urdf
 This repository contains the urdf model of go2.
 
+## How to use with go2_robot (replace only go2_description)
 
-## Build the library
-Create a new catkin workspace:
-```
-# Create the directories
-# Do not forget to change <...> parts
-mkdir -p <directory_to_ws>/<catkin_ws_name>/src
-cd <directory_to_ws>/<catkin_ws_name>/
+Follow the upstream setup, then swap only this package.
 
-# Initialize the catkin workspace
-catkin init
-```
+1) Setup upstream workspace
 
-Clone this library:
-```
-# Navigate to the directory of src
-# Do not forget to change <...> parts
-cd <directory_to_ws>/<catkin_ws_name>/src
-git clone git@github.com:unitreerobotics/go2_urdf.git
-```
+```bash
+# Create workspace and clone upstream (humble branch)
+mkdir -p ~/go2_ws/src && cd ~/go2_ws/src
+git clone https://github.com/Unitree-Go2-Robot/go2_robot.git -b humble
 
-Build:
-```
-# Build it
-catkin build
+# Install dependencies
+sudo apt update && sudo apt install ros-dev-tools -y
+vcs import < go2_robot/dependencies.repos
 
-# Source it
-source <directory_to_ws>/<catkin_ws_name>/devel/setup.bash
+cd ~/go2_ws
+sudo rosdep init || true
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
 ```
 
+2) Replace only go2_description with this one
 
-
-## Run the library
+```bash
+cd ~/go2_ws/src
+rm -rf go2_robot/src/go2_description
+# Copy this repository's go2_description into the upstream tree
+cp -R <PATH_TO_THIS_REPO>/src/go2_description go2_robot/src/
 ```
-# Show urdf model of go2 in Rviz
-roslaunch go2_description go2_rviz.launch
 
+3) Build and source
+
+```bash
+cd ~/go2_ws
+colcon build --symlink-install
+source install/setup.bash
 ```
 
-## When used for isaac gym or other similiar engine 
+4) Launch examples (from upstream bringup)
 
-Collision parameters in urdf can be amended to better train the robot:
+```bash
+ros2 launch go2_bringup go2.launch.py rviz:=True
+```
 
-Open "go2_description.urdf" in "./go2_description/urdf",
-and amend the ` box size="0.213 0.0245 0.034" ` in links of "FL_thigh", "FR_thigh", "RL_thigh", "RR_thigh".
+Reference: `https://github.com/Unitree-Go2-Robot/go2_robot`
 
-For example, change previous values to ` box size="0.11 0.0245 0.034" ` means the length of the thigh is shortened from 0.213 to 0.11, which can avoid unnecessary collision between the thigh link and the calf link. 
+## scripts
 
-The collision model before and after the above amendment are shown as "Normal_collision_model.png" and "Amended_collision_model.png" respectively.
+### `scripts/go2_lowstate_to_joint.py`
 
+- Subscribes: `/lowstate` (`unitree_go/LowState`)
+- Publishes: `/joint_states` (`sensor_msgs/JointState`)
+- Joint order (name and arrays):
+  - `[FL_hip_joint, FL_thigh_joint, FL_calf_joint, FR_hip_joint, FR_thigh_joint, FR_calf_joint, RL_hip_joint, RL_thigh_joint, RL_calf_joint, RR_hip_joint, RR_thigh_joint, RR_calf_joint]`
+- Motor index mapping (from `LowState.motor_state` to the above order):
+  - `[3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8]` (matches `go2_driver.cpp`)
 
+Run directly (example):
+
+```bash
+python3 ~/go2_ws/src/go2_description/scripts/go2_lowstate_to_joint.py
+```
+
+Or include it in a launch file as a separate process alongside `robot_state_publisher` and `rviz2`.
+
+### Joint names, order, and config alignment
+
+- Joint names in URDF (12 total):
+  - FL_hip_joint, FL_thigh_joint, FL_calf_joint
+  - FR_hip_joint, FR_thigh_joint, FR_calf_joint
+  - RL_hip_joint, RL_thigh_joint, RL_calf_joint
+  - RR_hip_joint, RR_thigh_joint, RR_calf_joint
+
+- Expected JointState.name order (must match go2_driver.cpp and ros_control):
+```text
+["FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
+ "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
+ "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint",
+ "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"]
+```
+
+- Driver publishing order and LowState index mapping (`src/go2_driver/src/go2_driver/go2_driver.cpp`):
+  - name order: FL, FR, RL, RR (each: hip, thigh, calf)
+  - position mapping from `LowState.motor_state` indices:
+    - FL: [3, 4, 5]
+    - FR: [0, 1, 2]
+    - RL: [9, 10, 11]
+    - RR: [6, 7, 8]
+
+- ros2_control config alignment:
+  - File: `src/go2_description/config/ros_control/ros_control.yaml`
+  - `joint_trajectory_controller.ros__parameters.joints` must keep the same order as `JointState.name` above.
+
+- Important:
+  - `JointState.name`, `position`, `velocity`, `effort` arrays must have the same length (12) and the same ordering.
+  - A missing comma or mismatched lengths/order will cause `robot_state_publisher` to ignore messages as invalid.
